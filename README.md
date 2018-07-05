@@ -8,4 +8,4 @@ Create 2 pipeline with 1 jobs with different labels
 
 Test Result :
 
-1
+12
