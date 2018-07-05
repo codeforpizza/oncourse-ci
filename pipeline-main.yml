@@ -1,0 +1,64 @@
+##################################
+#                                #
+#  Concourse - CI Config File    #
+#                                #
+##################################
+
+# Resource Types For Reading Pull Request 
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
+
+# Defining Resources for triggering CI duplicate for each and every one of the service
+resources:
+- name: pr-service-main
+  type: pull-request
+  source: 
+        repo: codeforpizza/oncourse-ci
+        base: master
+        label: service:main
+
+- name: pr-service-side
+  type: pull-request
+  source: 
+        repo: codeforpizza/oncourse-ci
+        base: master
+        label: service:side
+ 
+ 
+# Defining Jobs for the CI Pipeline
+jobs:
+- name: service-main
+  plan:
+  - get: pr-service-main
+    trigger: true
+    version: every
+  - task: service-main-test
+    config: 
+      platform : linux
+      image_resource:
+        type: docker-image
+        source: 
+          repository: golang
+          tag: "1.10"
+      run:
+        path: go env
+
+- name: service-side
+  plan:
+  - get: pr-service-side
+    trigger: true
+    version: every
+  - task: service-side-test
+    config: 
+      platform : linux
+      image_resource:
+        type: docker-image
+        source: 
+          repository: golang
+          tag: "1.10"
+      run:
+        path: go env
+    
