@@ -4,6 +4,8 @@
 #                                #
 ##################################
 
+# Main Jobs where git test live
+
 # Resource Types For Reading Pull Request 
 resource_types:
 - name: pull-request
@@ -16,49 +18,64 @@ resources:
 - name: pr-service-main
   type: pull-request
   source: 
+        access_token: ((github-token))
         repo: codeforpizza/oncourse-ci
-        base: master
-        label: service:main
+        base: master 
 
-- name: pr-service-side
-  type: pull-request
-  source: 
-        repo: codeforpizza/oncourse-ci
-        base: master
-        label: service:side
- 
- 
 # Defining Jobs for the CI Pipeline
 jobs:
-- name: service-main
+- name: master-check
   plan:
   - get: pr-service-main
     trigger: true
     version: every
-  - task: service-main-test
+  - task: service-master-check
     config: 
-      platform : linux
+      platform: linux
       image_resource:
         type: docker-image
-        source: 
-          repository: golang
-          tag: "1.10"
+        source: {repository: alpine/git}
+      inputs: 
+      - name: pr-service-main
       run:
-        path: go env
+        path: sh 
+        args: ['-c','cd pr-service-main && ls && git status']
 
-- name: service-side
+- name: service-1
   plan:
-  - get: pr-service-side
+  - get: pr-service-main
     trigger: true
     version: every
-  - task: service-side-test
-    config: 
-      platform : linux
+    passed:
+      - master-check
+  - task: service-1-check
+    config:
+      platform: linux
       image_resource:
         type: docker-image
-        source: 
-          repository: golang
-          tag: "1.10"
+        source: {repository: alpine/git}
+      inputs: 
+      - name: pr-service-main
       run:
-        path: go env
-    
+        path: sh 
+        args: ['-c','cd pr-service-main && git status && ls']
+
+
+- name: service-2
+  plan:
+  - get: pr-service-main
+    trigger: true
+    version: every
+    passed:
+      - master-check
+  - task: service-2-check
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: alpine/git}
+      inputs: 
+      - name: pr-service-main
+      run:
+        path: sh 
+        args: ['-c','cd pr-service-main && git status']
