@@ -1,0 +1,43 @@
+##################################
+#                                #
+#  Concourse - CI Config File    #
+#                                #
+##################################
+
+# Where service 1 live
+
+# Resource Types For Reading Pull Request 
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: jtarchie/pr
+
+# Defining Resources for triggering CI duplicate for each and every one of the service
+resources:
+- name: pr-service-1
+  type: pull-request
+  source: 
+        access_token: ((github-token))
+        repo: codeforpizza/oncourse-ci
+        base: master
+        label: service:1
+ 
+# Defining Jobs for the CI Pipeline
+jobs:
+- name: service-1
+  plan:
+  - get: pr-service-1
+    trigger: true
+  - task: service-1-test
+    config: 
+      platform : linux
+      image_resource:
+        type: docker-image
+        source: 
+          repository: busybox
+      run:
+        path: echo
+        args: [hello world]
+    on_success: 
+    
