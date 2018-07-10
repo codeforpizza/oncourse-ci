@@ -14,11 +14,10 @@ resource_types:
     repository: jtarchie/pr
 
 # Resource Types For Resource key value
-resource_types:
-  - name: keyval
-    type: docker-image
-    source:
-      repository: swce/keyval-resource
+- name: keyval
+  type: docker-image
+  source:
+    repository: swce/keyval-resource
 
 # Defining Resources for triggering CI duplicate for each and every one of the service
 resources:
@@ -35,6 +34,9 @@ resources:
 - name: keyvalService2
   type: keyval
 
+- name: keyvalService3
+  type: keyval
+
 # Defining Jobs for the CI Pipeline
 
 
@@ -42,12 +44,9 @@ resources:
 jobs:
 - name: master-check
   plan:
-  - aggregate:
-    - get: pr-service-main
-      trigger: true
-      version: every
-    - get: keyvalService1
-    - get: keyvalService2
+  - get: pr-service-main
+    trigger: true
+    version: every
   - task: service-master-check
     config: 
       platform: linux
@@ -82,12 +81,10 @@ jobs:
 
 
 
-
 ############################## Services Jobs ##########################
 - name: service-1
   plan:
   - get: keyvalService1
-    trigger: true
     passed:
       - master-check
   - task: service-1-check
@@ -96,8 +93,8 @@ jobs:
       image_resource:
         type: docker-image
         source: {repository: alpine/git}
-      inputs: 
-      - name: pr-service-main
+      inputs:
+      - name: keyvalService1
       run:
         path: /bin/sh
         args: 
