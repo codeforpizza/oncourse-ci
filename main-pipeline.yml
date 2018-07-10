@@ -56,23 +56,22 @@ jobs:
       - name: keyval
       run:
         path: sh 
-        args: ['-c','cd pr-service-main && ls && git status && git config --get pullrequest.basesha']
+        args: ['-c','ls && cd pr-service-main && ls && git status && git config --get pullrequest.basesha && cd ../keyval && echo service:true >> keyTest.1.properties && echo service:false >> keyTest.2.properties && echo service:false >> keyTest.3.properties && ls']
   
   - put: keyvalService1
     params:
-      file: keyTest.1.properties
+      file: keyval/keyTest.1.properties
   - put: keyvalService2
     params:
-      file: keyTest.2.properties
+      file: keyval/keyTest.2.properties
   - put: keyvalService3
     params:
-      file: keyTest.3.properties
+      file: keyval/keyTest.3.properties
 
 
 - name: service-1
   plan:
   - get: keyvalService1
-    trigger: true
     passed:
       - master-check
   - task: service-1-check
@@ -81,16 +80,14 @@ jobs:
       image_resource:
         type: docker-image
         source: {repository: alpine/git}
-      inputs: 
-      - name: pr-service-main
+      inputs:
+      - name: keyvalService1
       run:
         path: sh 
-        args: ['-c','ls && cd pr-service-main && git status && ls -l']
+        args: ['-c','cd keyvalService1 && ls && cat keyval.properties']
 - name: service-2
   plan:
   - get: keyvalService2
-    trigger: true
-    version: every
     passed:
       - master-check
   - task: service-2-check
@@ -99,16 +96,14 @@ jobs:
       image_resource:
         type: docker-image
         source: {repository: alpine/git}
-      inputs: 
-      - name: pr-service-main
+      inputs:
+      - name: keyvalService2
       run:
         path: sh 
-        args: ['-c','ls && cd pr-service-main && git status && ls -a']
+        args: ['-c','cd keyvalService2 && ls && cat keyval.properties']
 - name: service-3
   plan:
   - get: keyvalService3
-    trigger: true
-    version: every
     passed:
       - master-check
   - task: service-3-check
@@ -117,11 +112,11 @@ jobs:
       image_resource:
         type: docker-image
         source: {repository: alpine/git}
-      inputs: 
-      - name: pr-service-main
+      inputs:
+      - name: keyvalService3
       run:
         path: sh 
-        args: ['-c','cd pr-service-main && git status && ls -la']
+        args: ['-c','cd keyvalService3 && ls && cat keyval.properties']
 
 
 - name: deploy-service-1
