@@ -41,13 +41,9 @@ resources:
 jobs:
 - name: master-check
   plan:
-  - aggregate:
-    - get: pr-service-main
-      trigger: true
-      version: every
-    - get: keyvalService1
-    - get: keyvalService2
-    - get: keyvalService3
+  - get: pr-service-main
+    trigger: true
+    version: every
   - task: service-master-check
     config: 
       platform: linux
@@ -61,6 +57,17 @@ jobs:
       run:
         path: sh 
         args: ['-c','cd pr-service-main && ls && git status && git config --get pullrequest.basesha']
+  
+  - put: keyvalService1
+    params:
+      file: keyTest.1.properties
+  - put: keyvalService2
+    params:
+      file: keyTest.2.properties
+  - put: keyvalService3
+    params:
+      file: keyTest.3.properties
+
 
 - name: service-1
   plan:
@@ -78,9 +85,7 @@ jobs:
       - name: pr-service-main
       run:
         path: sh 
-        args: ['-c','cd pr-service-main && git status && ls']
-
-
+        args: ['-c','ls && cd pr-service-main && git status && ls -l']
 - name: service-2
   plan:
   - get: keyvalService2
@@ -98,9 +103,7 @@ jobs:
       - name: pr-service-main
       run:
         path: sh 
-        args: ['-c','cd pr-service-main && git status']
-
-
+        args: ['-c','ls && cd pr-service-main && git status && ls -a']
 - name: service-3
   plan:
   - get: keyvalService3
@@ -118,7 +121,8 @@ jobs:
       - name: pr-service-main
       run:
         path: sh 
-        args: ['-c','cd pr-service-main && git status']
+        args: ['-c','cd pr-service-main && git status && ls -la']
+
 
 - name: deploy-service-1
   plan:
@@ -136,7 +140,6 @@ jobs:
         run:
           path: sh 
           args: ['-c','cd pr-service-main && git status']
-
 - name: deploy-service-2
   plan:
     - get: keyvalService2
@@ -153,7 +156,6 @@ jobs:
         run:
           path: sh 
           args: ['-c','cd pr-service-main && git status']
-
 - name: deploy-service-3
   plan:
     - get: keyvalService3
