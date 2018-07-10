@@ -14,11 +14,10 @@ resource_types:
     repository: jtarchie/pr
 
 # Resource Types For Resource key value
-resource_types:
-  - name: keyval
-    type: docker-image
-    source:
-      repository: swce/keyval-resource
+- name: keyval
+  type: docker-image
+  source:
+    repository: swce/keyval-resource
 
 # Defining Resources for triggering CI duplicate for each and every one of the service
 resources:
@@ -35,6 +34,9 @@ resources:
 - name: keyvalService2
   type: keyval
 
+- name: keyvalService3
+  type: keyval
+
 # Defining Jobs for the CI Pipeline
 jobs:
 - name: master-check
@@ -45,6 +47,7 @@ jobs:
       version: every
     - get: keyvalService1
     - get: keyvalService2
+    - get: keyvalService3
   - task: service-master-check
     config: 
       platform: linux
@@ -57,7 +60,7 @@ jobs:
       - name: keyval
       run:
         path: sh 
-        args: ['-c','cd pr-service-main && ls && git status']
+        args: ['-c','cd pr-service-main && ls && git status && git config --get pullrequest.basesha']
 
 - name: service-1
   plan:
@@ -96,3 +99,74 @@ jobs:
       run:
         path: sh 
         args: ['-c','cd pr-service-main && git status']
+
+
+- name: service-3
+  plan:
+  - get: keyvalService3
+    trigger: true
+    version: every
+    passed:
+      - master-check
+  - task: service-3-check
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: alpine/git}
+      inputs: 
+      - name: pr-service-main
+      run:
+        path: sh 
+        args: ['-c','cd pr-service-main && git status']
+
+- name: deploy-service-1
+  plan:
+    - get: keyvalService1
+      trigger: true
+      version: every
+      passed:
+        - service-1
+    - task: service-1-deploy
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: {repository: alpine/git}
+        run:
+          path: sh 
+          args: ['-c','cd pr-service-main && git status']
+
+- name: deploy-service-2
+  plan:
+    - get: keyvalService2
+      trigger: true
+      version: every
+      passed:
+        - service-2
+    - task: service-2-deploy
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: {repository: alpine/git}
+        run:
+          path: sh 
+          args: ['-c','cd pr-service-main && git status']
+
+- name: deploy-service-3
+  plan:
+    - get: keyvalService3
+      trigger: true
+      version: every
+      passed:
+        - service-3
+    - task: service-3-deploy
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source: {repository: alpine/git}
+        run:
+          path: sh 
+          args: ['-c','cd pr-service-main && git status']
